@@ -1,17 +1,20 @@
 import requests
 
+
 class HeadHunterAPI:
     """Класс для работы с API HeadHunter"""
+
     def __init__(self):
         self.url = "https://api.hh.ru/"
         self.headers = {"User-Agent": "HH-User-Agent"}
         self.params = {}
         self.employers = []
 
-
     def get_response(self) -> bool:
         """Метод подключения к API"""
-        response = requests.get("https://api.hh.ru/", headers=self.headers, params=self.params)
+        response = requests.get(
+            "https://api.hh.ru/", headers=self.headers, params=self.params
+        )
         status_code = response.status_code
         self.params["page"] = 0
         if status_code == 200:
@@ -29,10 +32,11 @@ class HeadHunterAPI:
             self.params["sort_by"] = "by_name"
             self.params["per_page"] = 100
             while requests.get(self.url, headers=self.headers, params=self.params):
-                response = requests.get(self.url, headers=self.headers, params=self.params)
+                response = requests.get(
+                    self.url, headers=self.headers, params=self.params
+                )
                 companies_list.extend(response.json()["items"])
         return companies_list
-
 
     def get_vacancies(self, employer_id: str) -> list[dict]:
         """Метод для получения данных о вакансиях по id компании"""
@@ -42,7 +46,9 @@ class HeadHunterAPI:
             self.params["employer_id"] = "employer_id"
             self.params["per_page"] = 10
             while requests.get(self.url, headers=self.headers, params=self.params):
-                response = requests.get(self.url, headers=self.headers, params=self.params)
+                response = requests.get(
+                    self.url, headers=self.headers, params=self.params
+                )
                 vacancies.extend(response.json()["items"])
                 self.params["page"] += 1
         return vacancies
