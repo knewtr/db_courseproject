@@ -3,7 +3,7 @@ import psycopg2
 
 def create_db(db_name: str, params: dict) -> None:
     """Создание баз данных и таблиц для сохранения данных о работодателе и его вакансиях"""
-    conn = psycopg2.connect(db_name="postgres", **params)
+    conn = psycopg2.connect(dbname="postgres", **params)
     conn.autocommit = True
     cur = conn.cursor()
 
@@ -14,37 +14,32 @@ def create_db(db_name: str, params: dict) -> None:
     conn.close()
 
     conn = psycopg2.connect(dbname=db_name, **params)
+    conn.autocommit = True
     with conn.cursor() as cur:
         cur.execute(
             """
-        CREATE TABLE employers_list (
-            employer_id VARCHAR,
+        CREATE TABLE IF NOT EXISTS employers_list (
+            employer_id VARCHAR PRIMARY KEY,
             employer_name VARCHAR(255) NOT NULL,
-            employer_url VARCHAR,
-            
-            CONSTRAINT pk_employers_employer_id PRIMARY KEY (employer_id)
+            employer_url VARCHAR
             );
         """
         )
 
-    conn = psycopg2.connect(dbname=db_name, **params)
-    with conn.cursor() as cur:
         cur.execute(
             """
-        CREATE TABLE vacancies (
-            vacancy_id VARCHAR(20),
-            employer_id VARCHAR(20),
+        CREATE TABLE IF NOT EXISTS vacancies (
+            vacancy_id VARCHAR(20) PRIMARY KEY,
+            employer_id VARCHAR(20) NOT NULL,
             vacancy_name VARCHAR NOT NULL,
-            salary real,
+            salary REAL,
             vacancy_url TEXT,
             
-            CONSTRAINT pk_vacancies_vacancy_id PRIMARY KEY (vacancy_id),
-            CONSTRAINT fk_vacancies_employers FOREIGN KEY (employer_id) REFERENCES employers(employer_id)
+            CONSTRAINT fk_vacancies_employers FOREIGN KEY (employer_id) REFERENCES employers_list(employer_id)
             );
         """
         )
 
-    conn.commit()
     conn.close()
 
 
@@ -52,33 +47,41 @@ def save_data_to_db(
     employer_data: list[dict], vacancy_data: list[dict], db_name: str, params: dict
 ) -> None:
     """Сохранение данных о работодателе и вакансиях в базу данных"""
-    conn = psycopg2.connect(db_name=db_name, **params)
-
-    with conn.cursor() as cur:
-        for employer in employer_data:
-            cur.execute(
-                """
-                INSERT INTO employers (employer_id, employer_name, employer_url)
-                VALUES (%s, %s, %s)
-                RETURNING employer_id
-                """,
-                (employer["employer_id"], employer["employer_name"], ["employer_url"]),
-            )
-        for vacancy in vacancy_data:
-            cur.execute(
-                """
-                INSERT INTO vacancies (vacancy_id, employer_id, vacancy_name, salary, vacancy_url)
-                VALUES (%s, %s, %s, %s, %s)
-                RETURNING vacancy_id
-                """,
-                (
-                    vacancy["vacancy_id"],
-                    vacancy["employer_id"],
-                    vacancy["vacancy_name"],
-                    vacancy["salary"],
-                    vacancy["vacancy_url"],
-                ),
-            )
-
-        conn.commit()
-        conn.close()
+    conn = None
+    try:
+        conn = psycopg2.connect(dbname=db_name, **params)
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            for employer in employer_data:
+                cur.execute(
+                    """
+                    INSERT INTO employers_list (employer_id, employer_name, employer_url)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (employer["employer_id"], employer["employer_name"], ["employer_url"]),
+                )
+            for vacancy in vacancy_data:
+                vacancy_id = vacancy.get("vacancy_id")
+                employer_id = vacancy.get("employer_id")
+                vacancy_name = vacancy.get("vacancy_name")
+                if not vacancy_id:
+                    print(f'Пропущена вакансия с неполными данными')
+                    continue
+                cur.execute(
+                    """
+                    INSERT INTO vacancies (vacancy_id, employer_id, vacancy_name, salary, vacancy_url)
+                    VALUES (%s, %s, %s, %s, %s)
+                    """,
+                    (
+                        vacancy_id,
+                        employer_id,
+                        vacancy_name,
+                        vacancy.get("salary"),
+                        vacancy.get("vacancy_url"),
+                    ),
+                )
+    except Exception as e:
+        print(f'Ошибка сохранения данных в бд: {e}')
+    finally:
+        if conn:
+            conn.close()

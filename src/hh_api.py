@@ -5,50 +5,48 @@ class HeadHunterAPI:
     """Класс для работы с API HeadHunter"""
 
     def __init__(self):
-        self.url = "https://api.hh.ru/"
-        self.headers = {"User-Agent": "HH-User-Agent"}
-        self.params = {}
-        self.employers = []
+        self.__url_emp = "https://api.hh.ru/employers"
+        self.__url_vac = "https://api.hh.ru/vacancies"
+        self.__headers = {"User-Agent": "HH-User-Agent"}
+        self.__params = {}
+
 
     def get_response(self) -> bool:
         """Метод подключения к API"""
-        response = requests.get(
-            "https://api.hh.ru/", headers=self.headers, params=self.params
-        )
+        response = requests.get(self.__url_emp, headers=self.__headers, params=self.__params)
         status_code = response.status_code
-        self.params["page"] = 0
+        self.__params["page"] = 0
         if status_code == 200:
-            print("Ответ от hh.ru получен.")
             return True
         else:
-            print(f"Ошибка подключения к hh.ru.")
             return False
 
-    def get_employer_data(self, companies_list: list[str]) -> list[dict]:
+    def get_employers(self, employers_list: list[str]) -> list[dict]:
         """Метод для получения данных о работодателе"""
-        companies_list = []
+        employers = []
         if self.get_response():
-            self.url = "https://api.hh.ru/employers"
-            self.params["sort_by"] = "by_name"
-            self.params["per_page"] = 100
-            while requests.get(self.url, headers=self.headers, params=self.params):
-                response = requests.get(
-                    self.url, headers=self.headers, params=self.params
-                )
-                companies_list.extend(response.json()["items"])
-        return companies_list
+            self.__url_emp = "https://api.hh.ru/employers"
+            self.__params["sort_by"] = "by_name"
+            self.__params["per_page"] = 100
+        for employer in employers_list:
+            self.__params['text'] = employer
+            response = requests.get(self.__url_emp, headers=self.__headers, params=self.__params)
+            data = response.json()
+            employer_data = data['items'][0]
+            id_ = employer_data.get('id')
+            name = employer_data.get('name')
+            url = employer_data.get('url')
+            employers.append({'employer_id': id_, 'employer_name': name, 'company_url':url})
+        return employers
 
     def get_vacancies(self, employer_id: str) -> list[dict]:
         """Метод для получения данных о вакансиях по id компании"""
         vacancies = []
+        self.__params["employer_id"] = employer_id
+        self.__params["per_page"] = 100
         if self.get_response():
-            self.url = "https://api.hh.ru/vacancies"
-            self.params["employer_id"] = "employer_id"
-            self.params["per_page"] = 10
-            while requests.get(self.url, headers=self.headers, params=self.params):
-                response = requests.get(
-                    self.url, headers=self.headers, params=self.params
-                )
-                vacancies.extend(response.json()["items"])
-                self.params["page"] += 1
-        return vacancies
+            response = requests.get(self.__url_vac, headers=self.__headers, params=self.__params)
+            data = response.json()
+            items = data.get('items', [])
+            vacancies.extend(items)
+            return vacancies
