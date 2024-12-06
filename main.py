@@ -9,15 +9,15 @@ def main():
     """Основная функция проекта, которая взаимодействует с пользователем"""
     companies_list = [
         "Яндекс",
-        # "VK",
-        # "Тинькофф",
-        # "Ozon",
-        # "Авито",
-        # "МТС Диджитал",
-        # "Lamoda",
-        # "Контур",
-        # "Холдинг Т1",
-        # "ЛАНИТ",
+        "Альфа-Банк",
+        "Т-Банк",
+        "Ozon",
+        "Авито",
+        "ПАО Ростелеком",
+        "ООО МОТИВ",
+        "Контур",
+        "Нетология",
+        "ООО Сима-ленд",
     ]
 
     params = {
@@ -27,7 +27,7 @@ def main():
     "port": 5432
     }
     vacancies = []
-    check_response = HeadHunterAPI().get_response()
+    check_response = HeadHunterAPI()._get_response()
     print(check_response)
     employers_data = HeadHunterAPI().get_employers(companies_list)
     for employer in employers_data:
