@@ -53,20 +53,20 @@ def save_data_to_db(
         conn.autocommit = True
         with conn.cursor() as cur:
             for employer in employer_data:
+                if 'employer_url' or 'company_url' not in employer:
+                    print(f"Ошибка: отсутствует employer_url для работодателя {employer}")
+                    continue
                 cur.execute(
                     """
                     INSERT INTO employers_list (employer_id, employer_name, employer_url)
                     VALUES (%s, %s, %s)
                     """,
-                    (employer["employer_id"], employer["employer_name"], ["employer_url"]),
+                    (employer["employer_id"], employer["employer_name"], employer["company_url"]),
                 )
             for vacancy in vacancy_data:
                 vacancy_id = vacancy.get("vacancy_id")
-                employer_id = vacancy.get("employer_id")
+                employer_id = vacancy.get("company_id")
                 vacancy_name = vacancy.get("vacancy_name")
-                if not vacancy_id:
-                    print(f'Пропущена вакансия с неполными данными')
-                    continue
                 cur.execute(
                     """
                     INSERT INTO vacancies (vacancy_id, employer_id, vacancy_name, salary, vacancy_url)
@@ -80,6 +80,7 @@ def save_data_to_db(
                         vacancy.get("vacancy_url"),
                     ),
                 )
+                print('Таблица успешно создана')
     except Exception as e:
         print(f'Ошибка сохранения данных в бд: {e}')
     finally:

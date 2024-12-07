@@ -24,8 +24,8 @@ class HeadHunterAPI:
         employers = []
         if self._get_response():
             self.__url = "https://api.hh.ru/employers"
-            self.__params["sort_by"] = "by_name"
-            self.__params["per_page"] = 100
+            self.__params["sort_by"] = "by_vacancies_open"
+            self.__params["per_page"] = 10
         for employer in employers_list:
             self.__params['text'] = employer
             response = requests.get(self.__url, headers=self.__headers, params=self.__params)
@@ -46,28 +46,32 @@ class HeadHunterAPI:
         """Метод для получения данных о вакансиях по id компании"""
         vacancies = []
         self.__params["employer_id"] = employer_id
-        self.__params["per_page"] = 100
+        self.__params["per_page"] = 10
         if self._get_response():
             response = requests.get(self.__url, headers=self.__headers, params=self.__params)
             data = response.json().get('items', [])
+            print(data)
             for vacancy in data:
                 vacancies.append(vacancy)
         return vacancies
 
 
-if __name__ == '__main__':
-    companies_list = [
-        "Альфа-Банк", "Т-Банк", "Самокат", "Сбер для экспертов", "ПАО Ростелеком",
-        "Rusprofile", "Контур", "Нетология", "ООО Сима-ленд", 'АВИТО ТЕХ: разработка']
-
-    params = {
-        "host": "localhost",
-        "user": "postgres",
-        "password": 1234,
-        "port": 5432
-    }
-
-    vacancies = []
-    check_response = HeadHunterAPI()._get_response()
-    print(check_response)
-    employers_data = HeadHunterAPI().get_employers(companies_list)
+# if __name__ == '__main__':
+#     companies_list = [
+#          "Альфа-Банк", "Т-Банк", "Самокат (ООО Умный ритейл)", "СОГАЗ", "ПАО Ростелеком",
+#         "Rusprofile", "Контур", "Нетология", "Сима-ленд", 'УГМК']
+#
+#     params = {
+#         "host": "localhost",
+#         "user": "postgres",
+#         "password": 1234,
+#         "port": 5432
+#     }
+#
+#     vacancies = []
+#     check_response = HeadHunterAPI()._get_response()
+#     print(check_response)
+#     employers_data = HeadHunterAPI().get_employers(companies_list)
+#     print(employers_data)
+#     for employer in employers_data:
+#         vacancies_data = vacancies.extend(HeadHunterAPI().get_vacancies(employer['employer_id']))
