@@ -1,10 +1,8 @@
 import os
 from configparser import ConfigParser
 
-FILE_PATH = os.path.join(os.path.dirname(__file__), "database.ini")
 
-
-def config(filename="database.ini", section='postgres'):
+def config(filename="/Users/Knewt/myProjects/db_project/config/database.ini", section='postgres'):
     # create a parser
     parser = ConfigParser(interpolation=None)
     # read config file
