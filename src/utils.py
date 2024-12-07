@@ -21,7 +21,7 @@ def create_db(db_name: str, params: dict) -> None:
         CREATE TABLE IF NOT EXISTS employers_list (
             employer_id VARCHAR PRIMARY KEY,
             employer_name VARCHAR(255) NOT NULL,
-            employer_url VARCHAR
+            company_url VARCHAR
             );
         """
         )
@@ -53,30 +53,24 @@ def save_data_to_db(
         conn.autocommit = True
         with conn.cursor() as cur:
             for employer in employer_data:
-                if 'employer_url' or 'company_url' not in employer:
-                    print(f"Ошибка: отсутствует employer_url для работодателя {employer}")
-                    continue
                 cur.execute(
                     """
-                    INSERT INTO employers_list (employer_id, employer_name, employer_url)
+                    INSERT INTO employers_list (employer_id, employer_name, company_url)
                     VALUES (%s, %s, %s)
                     """,
                     (employer["employer_id"], employer["employer_name"], employer["company_url"]),
                 )
             for vacancy in vacancy_data:
-                vacancy_id = vacancy.get("vacancy_id")
-                employer_id = vacancy.get("company_id")
-                vacancy_name = vacancy.get("vacancy_name")
                 cur.execute(
                     """
                     INSERT INTO vacancies (vacancy_id, employer_id, vacancy_name, salary, vacancy_url)
                     VALUES (%s, %s, %s, %s, %s)
                     """,
                     (
-                        vacancy_id,
-                        employer_id,
-                        vacancy_name,
-                        vacancy.get("salary"),
+                        vacancy['id'],
+                        vacancy.get('employer_id'),
+                        vacancy['name'],
+                        vacancy["salary"],
                         vacancy.get("vacancy_url"),
                     ),
                 )

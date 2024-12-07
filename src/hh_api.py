@@ -30,7 +30,7 @@ class HeadHunterAPI:
             self.__params['text'] = employer
             response = requests.get(self.__url, headers=self.__headers, params=self.__params)
             data = response.json()
-            print(data)
+            print(f'инфо из компаний: {data}')
             if data.get('items'):
                 for employer_data in data['items']:
                     if employer_data.get('name') == employer:
@@ -50,10 +50,32 @@ class HeadHunterAPI:
         if self._get_response():
             response = requests.get(self.__url, headers=self.__headers, params=self.__params)
             data = response.json().get('items', [])
-            print(data)
+            print(f'инфо из вакансий: {data}')
             for vacancy in data:
                 vacancies.append(vacancy)
         return vacancies
+
+    @classmethod
+    def change_data(cls, vacancy:dict) -> dict:
+        """Метод для преобразования вакансии в подходящий формат"""
+        salary = 0
+        if type(vacancy.get("salary")) == dict:
+            from_ = vacancy["salary"].get("from", 0)
+            to = vacancy["salary"].get("to", 0)
+            if (from_ is not None and from_ != 0) and (to is not None and to != 0):
+                salary = (from_ + to) // 2
+            elif from_ is not None and from_ != 0:
+                salary = from_
+            elif to is not None and to != 0:
+                salary = to
+        transformed_vacancy = {
+            "vacancy_id": vacancy["id"],
+            "employer_id": vacancy["employer"]["id"],
+            "vacancy_name": vacancy["name"],
+            "salary": salary,
+            "vacancy_url": vacancy.get("alternate_url", ""),
+        }
+        return transformed_vacancy
 
 
 # if __name__ == '__main__':

@@ -9,8 +9,7 @@ def main():
     """Основная функция проекта, которая взаимодействует с пользователем"""
     default_db_name = 'employers'
     default_companies_list = [
-         "Альфа-Банк", "Т-Банк", "Самокат (ООО Умный ритейл)", "СОГАЗ", "ПАО Ростелеком",
-        "Rusprofile", "Контур", "Нетология", "Сима-ленд", 'УГМК']
+         "Альфа-Банк", "Т-Банк", ]
 
     params = {
     "host": "localhost",
@@ -42,14 +41,26 @@ def main():
 
     employers_data = HeadHunterAPI().get_employers(query_companies_list)
     for employer in employers_data:
-        vacancies_list = vacancies.extend(HeadHunterAPI().get_vacancies(employer['employer_id']))
-
+        vacancies.extend(HeadHunterAPI().get_vacancies(employer['employer_id']))
+    vacancies_list = list(map(lambda x: HeadHunterAPI.change_data(x), vacancies))
+    print(f'Полученные вакансии: {vacancies_list}')
 
     create_db(db_name, params)  # Создать таблицы в БД
 
     save_data_to_db( employers_data, vacancies, default_db_name, params)  # Заполнить БД данными из API
-
-    print('Данные о выбранных компаниях и их вакансиях собраны')
+    #
+    # options_query = input(
+    #     """Данные о выбранных компаниях и их вакансиях собраны. Выберите одну из опций:
+    #     1 - Вывести все вакансии;
+    #     2 - Вывести среднюю зарплату по вакансиям;
+    #     3 - Вывести вакансии с заработной платой выше среднего;
+    #     4 - Вывести вакансии по ключевому слову;
+    #     5 - Завершить работу\n
+    #     """)
+    # while True:
+    #     if options_query == '1':
+    #         rows = DBManager(db_name, params).get_all_vacancies()
+    #         for row in rows:
 
 if __name__ == '__main__':
     main()
