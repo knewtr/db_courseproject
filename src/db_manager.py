@@ -23,7 +23,7 @@ class DBManager:
         )
         rows = cur.fetchall()
         for row in rows:
-            print(f"Название компании: \n{row[0]}\nКоличество вакансий: {row[1]}\n")
+            print(f"Название компании: {row[0]}\nКоличество вакансий: {row[1]}\n")
 
         cur.close()
         conn.close()

@@ -57,6 +57,8 @@ def main():
         employers_data, vacancies_list, default_db_name, params
     )  # Заполнить БД данными из API
 
+    DBManager(db_name, params).get_companies_and_vacancies_count()
+
     options_query = input(
         """Данные о выбранных компаниях и их вакансиях собраны. Выберите одну из опций:
         1 - Вывести все вакансии;
@@ -96,7 +98,6 @@ def main():
             options_query = input(
                 "Введен неверный номер операции. Выберите одну из опций от 1 до 5.\n"
             )
-
 
 # if __name__ == '__main__':
 #     main()
