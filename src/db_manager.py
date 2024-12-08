@@ -10,13 +10,13 @@ class DBManager:
 
     def get_companies_and_vacancies_count(self):
         """Выводит список всех компаний и количество вакансий у каждой компании"""
-        conn = psycopg2.connect(db_name=self.name, **self.params)
+        conn = psycopg2.connect(dbname=self.name, **self.params)
         cur = conn.cursor()
 
         cur.execute(
             """
         SELECT employer_name, COUNT(*)
-        FROM vacancies JOIN employers USING (employer_id)
+        FROM vacancies JOIN employers_list USING (employer_id)
         GROUP BY employer_name
         ORDER BY COUNT (*) DESC; 
         """
@@ -31,7 +31,7 @@ class DBManager:
 
     def get_all_vacancies(self):
         """Выводит список всех вакансий"""
-        conn = psycopg2.connect(db_name=self.name, **self.params)
+        conn = psycopg2.connect(dbname=self.name, **self.params)
         cur = conn.cursor()
 
         cur.execute(
@@ -41,7 +41,7 @@ class DBManager:
             salary, 
             vacancy_url
             FROM vacancies 
-            JOIN employers USING (employer_id); 
+            JOIN employers_list USING (employer_id); 
             """
         )
         rows = cur.fetchall()
@@ -49,48 +49,52 @@ class DBManager:
         conn.close()
         return rows
 
-    def get_avg_salary(self, salary):
+    def get_avg_salary(self):
         """Выводит среднюю зарплату по вакансиям"""
-        conn = psycopg2.connect(db_name=self.name, **self.params)
+        conn = psycopg2.connect(dbname=self.name, **self.params)
         cur = conn.cursor()
 
         cur.execute(
             """
             SELECT AVG(salary) AS average_salary
-            FROM vacancies;
+            FROM vacancies
+            WHERE salary IS NOT NULL;
             """
         )
-        rows = cur.fetchall()
+        rows = cur.fetchone()
         cur.close()
         conn.close()
-        return round(rows[0][0], 2)
+        return round(rows[0], 2)
 
     def get_vacancies_with_higher_salary(self):
         """Выводит список всех вакансий, у которых зарплата выше средней по всем вакансиям"""
-        conn = psycopg2.connect(db_name=self.name, **self.params)
+        conn = psycopg2.connect(dbname=self.name, **self.params)
         cur = conn.cursor()
 
         cur.execute(
             """
             SELECT * FROM vacancies
-            WHERE salary > (SELECT AVG(salary))
-            FROM vacancies;
+            WHERE salary > (SELECT AVG(salary) FROM vacancies);
             """
         )
-        rows = cur.fetchall()
+        rows = cur.fetchone()
         cur.close()
         conn.close()
         return rows
 
     def get_vacancies_with_keyword(self, key_word):
         """Выводит список всех вакансий, в названии которых содержатся переданные в метод слова"""
-        conn = psycopg2.connect(db_name=self.name, **self.params)
+        conn = psycopg2.connect(dbname=self.name, **self.params)
         cur = conn.cursor()
 
-        cur.execute = ("""
+        cur.execute(
+            """
             SELECT * FROM vacancies
-            WHERE vacancy_name LIKE '%s{key_word.lower(0}%s';
-            """)
+            WHERE vacancy_name LIKE %s;
+            """,
+            (f"%{key_word.lower()}%",),
+        )
+
         rows = cur.fetchall()
         cur.close()
         conn.close()

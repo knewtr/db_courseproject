@@ -58,7 +58,11 @@ def save_data_to_db(
                     INSERT INTO employers_list (employer_id, employer_name, company_url)
                     VALUES (%s, %s, %s)
                     """,
-                    (employer["employer_id"], employer["employer_name"], employer["company_url"]),
+                    (
+                        employer["employer_id"],
+                        employer["employer_name"],
+                        employer["company_url"],
+                    ),
                 )
             for vacancy in vacancy_data:
                 cur.execute(
@@ -67,16 +71,16 @@ def save_data_to_db(
                     VALUES (%s, %s, %s, %s, %s)
                     """,
                     (
-                        vacancy['id'],
-                        vacancy.get('employer_id'),
-                        vacancy['name'],
+                        vacancy["vacancy_id"],
+                        vacancy.get("employer_id"),
+                        vacancy["vacancy_name"],
                         vacancy["salary"],
                         vacancy.get("vacancy_url"),
                     ),
                 )
-                print('Таблица успешно создана')
+            print("Таблицы успешно созданы.")
     except Exception as e:
-        print(f'Ошибка сохранения данных в бд: {e}')
+        print(f"Ошибка сохранения данных в бд: {e}.")
     finally:
         if conn:
             conn.close()
